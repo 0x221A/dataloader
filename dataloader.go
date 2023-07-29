@@ -58,6 +58,13 @@ func (p *PanicErrorWrapper) Error() string {
 	return p.panicError.Error()
 }
 
+func (p *PanicErrorWrapper) Unwrap() error {
+	if err := errors.Unwrap(p.panicError); err != nil {
+		return err
+	}
+	return p.panicError
+}
+
 // Loader implements the dataloader.Interface.
 type Loader[K comparable, V any] struct {
 	// the batch function to be used by this loader
@@ -438,7 +445,13 @@ func (b *batcher[K, V]) batch(originalContext context.Context) {
 
 	if panicErr != nil {
 		for _, req := range reqs {
-			req.channel <- &Result[V]{Error: &PanicErrorWrapper{panicError: fmt.Errorf("panic received in batch function: %v", panicErr)}}
+			var panicError error
+			if err, ok := panicErr.(error); ok {
+				panicError = fmt.Errorf("panic received in batch function: %w", err)
+			} else {
+				panicError = fmt.Errorf("panic received in batch function: %v", panicErr)
+			}
+			req.channel <- &Result[V]{Error: &PanicErrorWrapper{panicError}}
 			close(req.channel)
 		}
 		return
