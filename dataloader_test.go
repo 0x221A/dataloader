@@ -11,9 +11,9 @@ import (
 	"testing"
 )
 
-///////////////////////////////////////////////////
+// /////////////////////////////////////////////////
 // Tests
-///////////////////////////////////////////////////
+// /////////////////////////////////////////////////
 func TestLoader(t *testing.T) {
 	t.Run("test Load method", func(t *testing.T) {
 		t.Parallel()
@@ -50,7 +50,7 @@ func TestLoader(t *testing.T) {
 		ctx := context.Background()
 		future := panicLoader.Load(ctx, "1")
 		_, err := future()
-		if err == nil || err.Error() != "Panic received in batch function: Programming error" {
+		if err == nil || err.Error() != "panic received in batch function: Programming error" {
 			t.Error("Panic was not propagated as an error.")
 		}
 	})
@@ -95,7 +95,7 @@ func TestLoader(t *testing.T) {
 		}
 		for _, f := range futures {
 			_, err := f()
-			if err == nil || err.Error() != "Panic received in batch function: Programming error" {
+			if err == nil || err.Error() != "panic received in batch function: Programming error" {
 				t.Error("Panic was not propagated as an error.")
 			}
 		}
@@ -183,7 +183,7 @@ func TestLoader(t *testing.T) {
 		ctx := context.Background()
 		future := panicLoader.LoadMany(ctx, []string{"1", "2"})
 		_, errs := future()
-		if len(errs) < 2 || errs[0].Error() != "Panic received in batch function: Programming error" {
+		if len(errs) < 2 || errs[0].Error() != "panic received in batch function: Programming error" {
 			t.Error("Panic was not propagated as an error.")
 		}
 
@@ -678,9 +678,9 @@ func FaultyLoader[K comparable]() (*Loader[K, K], *[][]K) {
 	return loader, &loadCalls
 }
 
-///////////////////////////////////////////////////
+// /////////////////////////////////////////////////
 // Benchmarks
-///////////////////////////////////////////////////
+// /////////////////////////////////////////////////
 var a = &Avg{}
 
 func batchIdentity[K comparable](_ context.Context, keys []K) (results []*Result[K]) {

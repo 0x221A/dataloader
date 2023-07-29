@@ -6,8 +6,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
-	"runtime"
 	"sync"
 	"time"
 )
@@ -433,13 +431,6 @@ func (b *batcher[K, V]) batch(originalContext context.Context) {
 		defer func() {
 			if r := recover(); r != nil {
 				panicErr = r
-				if b.silent {
-					return
-				}
-				const size = 64 << 10
-				buf := make([]byte, size)
-				buf = buf[:runtime.Stack(buf, false)]
-				log.Printf("Dataloader: Panic received in batch function: %v\n%s", panicErr, buf)
 			}
 		}()
 		items = b.batchFn(ctx, keys)
@@ -447,7 +438,7 @@ func (b *batcher[K, V]) batch(originalContext context.Context) {
 
 	if panicErr != nil {
 		for _, req := range reqs {
-			req.channel <- &Result[V]{Error: &PanicErrorWrapper{panicError: fmt.Errorf("Panic received in batch function: %v", panicErr)}}
+			req.channel <- &Result[V]{Error: &PanicErrorWrapper{panicError: fmt.Errorf("panic received in batch function: %v", panicErr)}}
 			close(req.channel)
 		}
 		return
